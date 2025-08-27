@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from user.models import User
 from customer.models import Customer
 from customer.models import *
+from Hotel.models import *
+from api.v1.customer.serializers import *
 
 from django.contrib.auth import authenticate
 
@@ -83,6 +85,27 @@ def register(request):
         'message':'user is registerd succssfully'
     }
     return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def hotel(request):
+    instance = Hotal.objects.all()
+    context = {
+        'request':request
+    }
+    serializers = HotelSerializer(instance, many=True, context=context)
+
+    response_data = {
+       'status_code' : 6000,
+       'data' : serializers.data,
+       'message' : 'Hotel list retrieved successfully'
+    }
+    return Response(response_data)
+
+    
+
+
+
     
 
 

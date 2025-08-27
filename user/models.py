@@ -6,8 +6,8 @@ from user.manager import UserManager
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, max_length=256, error_messages={'unique':'email already exist'})
-    is_customer = models.BooleanField(default=True)
-    is_manager = models.BooleanField(default=True)
+    is_customer = models.BooleanField(default=False)
+    is_manager = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -22,6 +22,8 @@ class User(AbstractUser):
 
         def __str__(self):
             return self.email
+        
+
         
 
             
