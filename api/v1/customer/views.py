@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from user.models import User
-from customer.models import Customer
+from customer.models import *
 from customer.models import *
 from Hotel.models import *
 from api.v1.customer.serializers import *
@@ -55,7 +55,7 @@ def register(request):
 
     if User.objects.filter(email=email).exists():
         response_data = {
-            "status_code": 6000,
+            "status_code": 6001,
             "data": {
             "message":"email already exist"
             }
@@ -90,6 +90,11 @@ def register(request):
 @permission_classes([AllowAny])
 def hotel(request):
     instance = Hotal.objects.all()
+    location = request.GET.get('location')
+    if location :
+        instance = Hotal.objects.filter(location__icontains = location)
+    else:
+        instance = Hotal.objects.all()
     context = {
         'request':request
     }
@@ -102,10 +107,44 @@ def hotel(request):
     }
     return Response(response_data)
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def rooms(request):
-    instance = Room.objects.all()
+def single_hotel(request,id):
+    user = request.user
+    customer = Customer.objects.get(user=user)
+    instance = Hotal.objects.get(id=id)
+
+    context = {
+        'request':request
+    }
+
+    serializers = HotelSerializer(instance, many=True, context=context)
+    response_data ={
+        'status_code': 6000,
+        'data':serializers.data,
+        'message': 'Hotel retrived successfully'
+    }
+    return Response(response_data)
+   
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def rooms(request,hotel_id):
+    
+    instance = Room.objects.filter(hotel_id=hotel_id)
+    room_type = request.GET.get('room_type')
+    availability = request.GET.get('availability')
+
+    if room_type:
+        queryset = Room.objects.filter(room_type=room_type) 
+
+    if availability is not None:
+        if availability.lower() == 'True':
+            queryset = queryset.filter(availability=availability)
+        elif availability.lower() == 'False':
+            queryset = queryset.filter(availability=availability)
+
     context = {
         'request': request
     }
