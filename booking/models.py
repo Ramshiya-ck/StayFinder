@@ -1,0 +1,42 @@
+from django.db import models
+from user.models import User
+from Hotel.models import Hotal
+from Room.models import Room 
+
+class Booking(models.Model):
+
+    STATUS_CHOICE =[
+        ('pending','Pending'),
+        ('confirmed','Confirmed'),
+        ('cancelled','Cancelled'),
+        ('completed','Compeleted')
+
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('pending','Pending'),
+        ('paid','Paid'),
+        ('failed','Failed')
+    ]
+    customer = models.ForeignKey(User,on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotal,on_delete=models.CASCADE)
+    room = models.ForeignKey(Room,on_delete=models.CASCADE) 
+    check_in = models.DateField()
+    check_out = models.DateField()
+    number_of_guest = models.PositiveBigIntegerField(default=False)
+    status = models.CharField(max_length=20,choices=STATUS_CHOICE,default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+
+        db_table = 'booking_list'
+        verbose_name = 'booking'
+        verbose_name_plural = 'bookings'
+        ordering = ['-id']
+
+        def __str__(self):
+            return f"Booking #(self.id)-(self.customer)-(self.room.room_type)@(self.hotel.hotal_name)"
+
+
+

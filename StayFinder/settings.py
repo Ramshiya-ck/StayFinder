@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'customer',
     'Hotel',
     'Room',
+    'booking',
 
     'rest_framework',
     'rest_framework_simplejwt',

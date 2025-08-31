@@ -24,7 +24,7 @@ class Hotal(models.Model):
 
 
     def __str__(self):
-        return str(Hotal.hotel_name)
+        return str(self.hotal_name)
     
 class HotelManager(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)

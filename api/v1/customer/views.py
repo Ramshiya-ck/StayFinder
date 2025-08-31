@@ -40,7 +40,6 @@ def login(request):
             "message": "Invalid Credential"
 
         }
-
         return Response(response_data)
     
 @api_view(['POST'])
@@ -109,30 +108,105 @@ def hotel(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def single_hotel(request,id):
     user = request.user
     customer = Customer.objects.get(user=user)
     instance = Hotal.objects.get(id=id)
+    room = Room.objects.filter(hotel=instance)
 
     context = {
         'request':request
     }
 
-    serializers = HotelSerializer(instance, many=True, context=context)
+
     response_data ={
         'status_code': 6000,
-        'data':serializers.data,
+        'Hotel':HotelSerializer(instance,context=context).data,
+        'room' :RoomSerializer(room,many = True).data,
+
         'message': 'Hotel retrived successfully'
     }
     return Response(response_data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def hotel_create(request):
+    
+    context = {
+        'request':request
+    }
+    serializer = HotelSerializer(data = request.data,context=context)
+    if serializer.is_valid():
+        serializer.save()
+        
+        response_data = {
+            'status_code': 6000,
+            'data': serializer.data,
+            'message': 'Hotal created successfully'
+        }
+        return Response(response_data)
+    else:
+        response_data = {
+            'status_code':6001,
+            'error':serializer.errors,
+            'message':'Hotal creation failed'
+        }
+        return Response(response_data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def hotel_edit(request,id):
+    instance = Hotal.objects.get(id=id)
    
+
+    hotal_name = request.data.get('hotal_name')
+    image = request.data.get('image')
+    description = request.data.get('description')
+    phone = request.data.get('phone')
+    rating = request.data.get('rating')
+    location = request.data.get('location')
+    email = request.data.get('email')
+    amentities = request.data.get('amentities')
+    is_active = request.data.get('is_active')
+
+
+    instance.hotal_name = hotal_name
+    instance.image = image
+    instance.description = description
+    instance.phone = phone
+    instance.rating = rating
+    instance.location = location
+    instance.email = email
+    instance.amentities = amentities
+    instance.is_active = is_active
+    instance.save()
+
+    response_data = {
+        'status_code':6001,
+        'message':'Hotal updated success fully'
+    }
+    return Response(response_data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def hotel_deleted(request, id):
+   instance = Hotal.objects.get(id=id)
+   instance.delete()
+
+   response_data = {
+       "status_code": 6000,
+       "data": {},
+       "message": "Address deleted successfully"
+   }
+   return Response(response_data)
+    
+    
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def rooms(request,hotel_id):
-    
-    instance = Room.objects.filter(hotel_id=hotel_id)
+def rooms(request):
+    instance = Room.objects.all()
     room_type = request.GET.get('room_type')
     availability = request.GET.get('availability')
 
@@ -155,6 +229,185 @@ def rooms(request,hotel_id):
         'message' : 'Room list retrived successfully'
     }
     return Response(response_data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def room_create(request):
+    context = {
+        'request':request
+    }
+    serializer = RoomSerializer(data = request.data,context=context)
+    if serializer.is_valid():
+        serializer.save()
+        
+        response_data = {
+            'status_code': 6000,
+            'data': serializer.data,
+            'message': 'Room created successfully'
+        }
+        return Response(response_data)
+    else:
+        response_data = {
+            'status_code':6001,
+            'error':serializer.errors,
+            'message':'Hotal creation failed'
+        }
+        return Response(response_data)
+    
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def room_edit(request,id):
+    instance = Room.objects.get(id=id)
+   
+
+
+    image = request.data.get('image')
+    hotel = request.data.get('hotel')
+    room_type = request.data.get('room_type')
+    price = request.data.get('price')
+    availability = request.data.get('availability')
+    
+
+    instance.image = image
+    instance.hotel = hotel
+    instance.room_type = room_type
+    instance.price = price
+    instance.availability = availability
+    
+    instance.save()
+
+    response_data = {
+        'status_code':6001,
+        'message':'Room updated success fully'
+    }
+    return Response(response_data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def room_deleted(request, id):
+   instance = Room.objects.get(id=id)
+   instance.delete()
+
+   response_data = {
+       "status_code": 6000,
+       "data": {},
+       "message": "Room deleted successfully"
+   }
+   return Response(response_data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def booking_list(request):
+    instance = Booking.objects.all()
+    context = {
+        'request' : request
+    }
+    serializers = BookingSerializer(instance,many = True,context = context)
+    response_data = {
+        "status_code" : 6000,
+        "data" : serializers.data,
+        "message"  : 'Booking list retrieved successfully'
+    }
+    return Response(response_data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def booking_create(request,id):
+    data = request.data
+    context = {
+        "request" : request
+    }
+    serializers = BookingSerializer(context=context,data=data)
+    if serializers.is_valid():
+        serializers.save
+
+        response_data = {
+            "status_code" : 6000,
+            "data" : serializers.data,
+            "message" : 'Booking created successfully'
+        }
+    
+    else:
+        response_data = {
+            "status_code" : 6001,
+            "data" : serializers.errors,
+            "message" : 'Booking creation failed'
+        }
+        return Response(response_data)
+    
+    
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def booking_update(request, id):
+    booking = Booking.objects.get(id=id)
+    data = request.data
+    context = {
+        "request" : request
+    }
+    serializer = BookingSerializer(booking, data=data, partial=True, context=context)
+    if serializer.is_valid():
+        serializer.save()
+        response_data = {
+            "status_code": 6000,
+            "data": serializer.data,
+            "message": "Booking updated successfully"
+        }
+    response_data = {
+        "status_code": 6001,
+        "errors": serializer.errors,
+        "message": "Booking update failed"
+    }
+    return Response(response_data)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def booking_deleted(request,id):
+    instance = Booking.objects.get(id=id)
+    instance.delete()
+
+    response_data = {
+        "status_code" : 6000,
+        "data" : {},
+        "message" : "Booking deleted successfully"
+    }
+    return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def booking_history(request,id):
+    user = request.user
+    booking = Booking.objects.filter(user=user).order_by('-created_at')
+    context = {
+        "request" : request
+    }
+    serializers = BookingSerializer(booking,context = context, many = True )
+    
+    response_data = {
+        "status_code" : 6000,
+        "data" : serializers.data,
+        "message" : 'Booking history retrieved successfully'
+    }
+    return Response(response_data)
+
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    request.user.auth_token.delete()
+    response_data = {
+        "status_code": 6000,
+        "message": "Logout successfully"
+    }
+    return Response(response_data)
+    
+   
+
 
 
 
