@@ -119,7 +119,6 @@ def single_hotel(request,id):
         'request':request
     }
 
-
     response_data ={
         'status_code': 6000,
         'Hotel':HotelSerializer(instance,context=context).data,
@@ -153,13 +152,14 @@ def hotel_create(request):
             'message':'Hotal creation failed'
         }
         return Response(response_data)
+    
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def hotel_edit(request,id):
+
     instance = Hotal.objects.get(id=id)
    
-
     hotal_name = request.data.get('hotal_name')
     image = request.data.get('image')
     description = request.data.get('description')
@@ -256,31 +256,35 @@ def room_create(request):
     
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def room_edit(request,id):
+def room_edit(request, id):
     instance = Room.objects.get(id=id)
-   
+    hotel_id = request.data.get('hotel')
+    if hotel_id:
+        
+            hotel_instance = Hotal.objects.get(id=int(hotel_id))
+            instance.hotel = hotel_instance
 
+            return Response({
+                'status_code': 6001,
+                'message': 'Invalid hotel id'
+            }, status=400)
 
-    image = request.data.get('image')
-    hotel = request.data.get('hotel')
-    room_type = request.data.get('room_type')
-    price = request.data.get('price')
-    availability = request.data.get('availability')
-    
+    if 'image' in request.data:
+        instance.image = request.data['image']
+    if 'room_type' in request.data:
+        instance.room_type = request.data['room_type']
+    if 'price' in request.data:
+        instance.price = request.data['price']
+    if 'availability' in request.data:
+        instance.availability = request.data['availability']
 
-    instance.image = image
-    instance.hotel = hotel
-    instance.room_type = room_type
-    instance.price = price
-    instance.availability = availability
-    
     instance.save()
 
-    response_data = {
-        'status_code':6001,
-        'message':'Room updated success fully'
-    }
-    return Response(response_data)
+    return Response({
+        'status_code': 6000,
+        'message': 'Room updated successfully'
+    })
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -294,7 +298,6 @@ def room_deleted(request, id):
        "message": "Room deleted successfully"
    }
    return Response(response_data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -313,20 +316,21 @@ def booking_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def booking_create(request,id):
+def booking_create(request):
     data = request.data
     context = {
         "request" : request
     }
     serializers = BookingSerializer(context=context,data=data)
     if serializers.is_valid():
-        serializers.save
+        serializers.save()
 
         response_data = {
             "status_code" : 6000,
             "data" : serializers.data,
             "message" : 'Booking created successfully'
         }
+        return Response(response_data)
     
     else:
         response_data = {
@@ -335,7 +339,6 @@ def booking_create(request,id):
             "message" : 'Booking creation failed'
         }
         return Response(response_data)
-    
     
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])
@@ -348,11 +351,14 @@ def booking_update(request, id):
     serializer = BookingSerializer(booking, data=data, partial=True, context=context)
     if serializer.is_valid():
         serializer.save()
+
         response_data = {
             "status_code": 6000,
             "data": serializer.data,
             "message": "Booking updated successfully"
         }
+        return Response(response_data)
+    
     response_data = {
         "status_code": 6001,
         "errors": serializer.errors,
@@ -360,10 +366,10 @@ def booking_update(request, id):
     }
     return Response(response_data)
 
-
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def booking_deleted(request,id):
+    user = request.user
     instance = Booking.objects.get(id=id)
     instance.delete()
 
@@ -376,9 +382,9 @@ def booking_deleted(request,id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def booking_history(request,id):
+def booking_history(request,id):    
     user = request.user
-    booking = Booking.objects.filter(user=user).order_by('-created_at')
+    booking = Booking.objects.filter(customer = id).order_by('-created_at')
     context = {
         "request" : request
     }
@@ -392,8 +398,64 @@ def booking_history(request,id):
     return Response(response_data)
 
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def booking_cancel(request,id):
+    user = request.user
+    instance = Booking.objects.get(id=id)
+    instance.status = "cancelled"
+    instance.save()
+
+    response_data = {
+        "status_code" : 6000,
+        "data" : {
+            "id" : instance.id,
+            "status" : instance.status
+        },
+        "message" : "Booking cancelled successfully"
+    }
+    return Response(response_data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def booking_reschedule(request,id):
+    user = request.user
+    instance = Booking.objects.get(id=id)
+
+    check_in = request.data.get('check_in')
+    check_out = request.data.get("check_out")
 
 
+#  check-out must be after check-in
+    if check_out <= check_in:
+        response_data = {
+            "status_code" : 6001,
+            "message" : "Check-out date must be after check-in date."
+        }
+        return Response(response_data)
+    
+# Booking must not be cancelled/completed
+    if instance.status in ["cancelled", "completed"]:
+        response_data = {
+            "status_code" : 6001,
+            "message" : f"Cannot reschedule a {instance.status} booking."
+        }
+        return Response(response_data)
+    
+    instance.check_in = check_in
+    instance.check_out = check_out
+    instance.save()
+    response_data = {
+        "status_code" : 6000,
+        "data" : {
+            "id" : instance.id,
+            "check_in" : instance.check_in,
+            "check_out" : instance.check_out,
+            "status" : instance.status,
+            "message" : " Booking rescheduled successfully"
+        }
+    }
+    return Response(response_data)
 
 
 @api_view(['POST'])
