@@ -4,6 +4,15 @@ from rest_framework import serializers
 from Hotel.models import *
 from Room.models import *
 from booking.models import *
+from user.models import *
+from customer.models import *
+
+
+
+class CustomerSerializer(ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id','user','phone','address','profile_image']
 
 
 class HotelSerializer(ModelSerializer):
@@ -11,7 +20,10 @@ class HotelSerializer(ModelSerializer):
         model = Hotal
         fields = ['id','hotal_name','image','description','phone','rating','location','email','amentities','is_active']
 
-        
+class SliderSerializer(ModelSerializer):
+    class Meta:
+        model = Slider
+        fields = ['id','name','image','description']       
 
 class RoomSerializer(ModelSerializer):
     class Meta:

@@ -2,6 +2,9 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
+
+
 
 from user.models import User
 from customer.models import *
@@ -84,6 +87,58 @@ def register(request):
         'message':'user is registerd succssfully'
     }
     return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    user = request.user
+    customer = Customer.objects.get(user=user)
+    context = {
+        'request':request
+    }
+    serializers = CustomerSerializer(customer,context=context)
+    response_data = {
+        'status_code' : 6000,
+        'data' : serializers.data,
+        'message' : 'Profile data retrieved successfully'
+    }
+    return Response(response_data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def index(request):
+    slider = Slider.objects.all()
+    hotel = Hotal.objects.all()
+    context = {
+        'request':request
+    }
+    slider_serializers = SliderSerializer(slider,many=True,context=context)
+    hotel_serializers = HotelSerializer(hotel,many=True,context=context)
+    response_data = {
+        "status_code": 6000,
+        "slider": slider_serializers.data,
+        "hotel": hotel_serializers.data,
+        "message": "Index data retrieved successfully"
+    }
+    return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def slider(request):
+    instance = Slider.objects.all()
+    context = {
+        'request':request
+    }
+    serializers = SliderSerializer(instance, many=True, context=context)
+
+    response_data = {
+       'status_code' : 6000,
+       'data' : serializers.data,
+       'message' : 'Slider list retrieved successfully'
+    }
+    return Response(response_data)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -420,13 +475,16 @@ def booking_cancel(request,id):
 @permission_classes([IsAuthenticated])
 def booking_reschedule(request,id):
     user = request.user
-    instance = Booking.objects.get(id=id)
+    instance = get_object_or_404(Booking, id=id,customer=user)
 
     check_in = request.data.get('check_in')
     check_out = request.data.get("check_out")
+    number_of_guest = request.data.get('number_of_guest')
+    status = request.data.get('status')
 
 
-#  check-out must be after check-in
+
+#  checkout must be after check-in
     if check_out <= check_in:
         response_data = {
             "status_code" : 6001,
@@ -442,9 +500,17 @@ def booking_reschedule(request,id):
         }
         return Response(response_data)
     
+
+    
     instance.check_in = check_in
     instance.check_out = check_out
+    instance.number_of_guest = number_of_guest
+
+# Only owner/admin should be able to change status
+    if status and status in dict(Booking.STATUS_CHOICE).keys():
+        instance.status =status
     instance.save()
+
     response_data = {
         "status_code" : 6000,
         "data" : {
