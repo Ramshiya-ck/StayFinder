@@ -12,13 +12,13 @@ from customer.models import *
 class CustomerSerializer(ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['id','user','phone','address','profile_image']
+        fields = ['id','user','phone','address','profile_image','id_proof','nationality']
 
 
 class HotelSerializer(ModelSerializer):
     class Meta:
         model = Hotal
-        fields = ['id','hotal_name','image','description','phone','rating','location','email','amentities','is_active']
+        fields = ['id','hotal_name','image','description','phone','rating','location','email','amenities','is_active']
 
 class SliderSerializer(ModelSerializer):
     class Meta:

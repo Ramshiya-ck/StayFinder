@@ -104,6 +104,70 @@ def profile(request):
     }
     return Response(response_data)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def profile_create(request):
+    user = request.user
+    customer = Customer.objects.get(user=user)
+    context = {
+        'request':request   
+    }
+    serializers = CustomerSerializer(customer,context= context,data=request.data)
+    if serializers.is_valid():
+        serializers.save()
+        response_data = {
+            'status_code' : 6000,
+            'data' : serializers.data,
+            'message' : 'Profile created successfully'
+        }
+        return Response(response_data)
+    else:
+        response_data = {
+            'status_code' : 6001,
+            'error' : serializers.errors,
+            'message' : 'Profile creation failed'
+        }
+        return Response(response_data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def profile_update(request):
+    user = request.user
+    customer = Customer.objects.get(user=user)
+    context = {
+        'request':request   
+    }
+    serializers = CustomerSerializer(customer,context= context,data=request.data,partial=True)
+    if serializers.is_valid():
+        serializers.save()
+        response_data = {
+            'status_code' : 6000,
+            'data' : serializers.data,
+            'message' : 'Profile updated successfully'
+        }
+        return Response(response_data)
+    else:
+        response_data = {
+            'status_code' : 6001,
+            'error' : serializers.errors,
+            'message' : 'Profile updation failed'
+        }
+        return Response(response_data)
+    
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def profile_delete(request):
+    user = request.user
+    customer = Customer.objects.get(user=user)
+    customer.delete()
+    user.delete()
+    response_data = {
+        'status_code' : 6000,
+        'data' : {},
+        'message' : 'Profile deleted successfully'
+    }
+    return Response(response_data)
+    
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -144,11 +208,6 @@ def slider(request):
 @permission_classes([AllowAny])
 def hotel(request):
     instance = Hotal.objects.all()
-    location = request.GET.get('location')
-    if location :
-        instance = Hotal.objects.filter(location__icontains = location)
-    else:
-        instance = Hotal.objects.all()
     context = {
         'request':request
     }
@@ -161,6 +220,34 @@ def hotel(request):
     }
     return Response(response_data)
 
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def hotel_search(request):
+    instance = Hotal.objects.all()
+    location = request.GET.get('location')
+
+    if location:
+        instance = Hotal.objects.filter(
+            location__icontains=location,
+    )
+    elif location:
+        instance = Hotal.objects.filter(location__icontains=location)
+
+    else:
+        instance = Hotal.objects.all()
+    context = {
+        'request':request
+    }
+    serializers = HotelSerializer(instance, many=True, context=context)
+
+    response_data = {
+       'status_code' : 6000,
+       'data' : serializers.data,
+       'message' : 'Hotel search  successfully'
+    }
+    return Response(response_data)
+    
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

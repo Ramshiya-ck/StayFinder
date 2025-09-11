@@ -5,14 +5,15 @@ from django.utils import timezone
 
 
 class Hotal(models.Model):
-    hotal_name = models.CharField(max_length=25,unique=True)
-    image = models.FileField(upload_to='hotel_images' ,blank=True,null=True)
-    description = models.TextField(blank=True,null=True)
-    phone = models.PositiveIntegerField(null=True, blank=True)
+
+    hotal_name = models.CharField(max_length=25, unique=True)
+    image = models.FileField(upload_to='hotel_images', blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
     rating = models.IntegerField(default=3)
     location = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    amentities = models.TextField(blank=True)
+    amenities = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     
 
