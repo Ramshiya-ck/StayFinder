@@ -22,10 +22,7 @@ class SliderSerializer(ModelSerializer):
         model = Slider
         fields = ['id','name','image','description']       
 
-class RoomSerializer(ModelSerializer):
-    class Meta:
-        model = Room
-        fields = ['id','image','hotel_id','room_type','price','availability']
+
 
 class BookingSerializer(ModelSerializer):
     class Meta:
