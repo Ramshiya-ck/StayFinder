@@ -204,177 +204,37 @@ def slider(request):
     return Response(response_data)
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def hotel(request):
-    instance = Hotal.objects.all()
-    context = {
-        'request':request
-    }
-    serializers = HotelSerializer(instance, many=True, context=context)
 
-    response_data = {
-       'status_code' : 6000,
-       'data' : serializers.data,
-       'message' : 'Hotel list retrieved successfully'
-    }
-    return Response(response_data)
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def hotel_search(request):
-    instance = Hotal.objects.all()
-    location = request.GET.get('location')
-
-    if location:
-        instance = Hotal.objects.filter(
-            location__icontains=location,
-    )
-    elif location:
-        instance = Hotal.objects.filter(location__icontains=location)
-
-    else:
-        instance = Hotal.objects.all()
-    context = {
-        'request':request
-    }
-    serializers = HotelSerializer(instance, many=True, context=context)
-
-    response_data = {
-       'status_code' : 6000,
-       'data' : serializers.data,
-       'message' : 'Hotel search  successfully'
-    }
-    return Response(response_data)
+    
     
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def single_hotel(request,id):
-    user = request.user
-    customer = Customer.objects.get(user=user)
-    instance = Hotal.objects.get(id=id)
-    room = Room.objects.filter(hotel=instance)
+def rooms(request,hotel_id):   # e.g., /rooms/7/
+    rooms = Room.objects.filter(hotel_id=hotel_id)
 
-    context = {
-        'request':request
-    }
 
-    response_data ={
-        'status_code': 6000,
-        'Hotel':HotelSerializer(instance,context=context).data,
-        'room' :RoomSerializer(room,many = True).data,
+    print(rooms, "ggggg")
 
-        'message': 'Hotel retrived successfully'
-    }
-    return Response(response_data)
+    if not rooms.exists():
+        return Response({
+            'status_code': 404,
+            'data': [],
+            'message': 'No rooms found for this hotel'
+        })
+
+    serializer = RoomSerializer(rooms, many=True, context={'request': request})
+    return Response({
+        'status_code': 200,
+        'data': serializer.data,
+        'message': 'Rooms retrieved successfully'
+    })
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def hotel_create(request):
-    
-    context = {
-        'request':request
-    }
-    serializer = HotelSerializer(data = request.data,context=context)
-    if serializer.is_valid():
-        serializer.save()
-        
-        response_data = {
-            'status_code': 6000,
-            'data': serializer.data,
-            'message': 'Hotal created successfully'
-        }
-        return Response(response_data)
-    else:
-        response_data = {
-            'status_code':6001,
-            'error':serializer.errors,
-            'message':'Hotal creation failed'
-        }
-        return Response(response_data)
-    
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def hotel_edit(request,id):
-
-    instance = Hotal.objects.get(id=id)
-   
-    hotal_name = request.data.get('hotal_name')
-    image = request.data.get('image')
-    description = request.data.get('description')
-    phone = request.data.get('phone')
-    rating = request.data.get('rating')
-    location = request.data.get('location')
-    email = request.data.get('email')
-    amentities = request.data.get('amentities')
-    is_active = request.data.get('is_active')
-
-
-    instance.hotal_name = hotal_name
-    instance.image = image
-    instance.description = description
-    instance.phone = phone
-    instance.rating = rating
-    instance.location = location
-    instance.email = email
-    instance.amentities = amentities
-    instance.is_active = is_active
-    instance.save()
-
-    response_data = {
-        'status_code':6001,
-        'message':'Hotal updated success fully'
-    }
-    return Response(response_data)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def hotel_deleted(request, id):
-   instance = Hotal.objects.get(id=id)
-   instance.delete()
-
-   response_data = {
-       "status_code": 6000,
-       "data": {},
-       "message": "Address deleted successfully"
-   }
-   return Response(response_data)
-    
-    
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def rooms(request):
-    instance = Room.objects.all()
-    room_type = request.GET.get('room_type')
-    availability = request.GET.get('availability')
-
-    if room_type:
-        queryset = Room.objects.filter(room_type=room_type) 
-
-    if availability is not None:
-        if availability.lower() == 'True':
-            queryset = queryset.filter(availability=availability)
-        elif availability.lower() == 'False':
-            queryset = queryset.filter(availability=availability)
-
-    context = {
-        'request': request
-    }
-    serializers = RoomSerializer(instance, many=True, context=context)
-    response_data = {
-        'status_code': 6000,
-        'data' : serializers.data,
-        'message' : 'Room list retrived successfully'
-    }
-    return Response(response_data)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def room_create(request):
+def room_create(request,hotel_id):
+    hotel = Hotal.objects.get(hotel_id=hotel_id)
     context = {
         'request':request
     }

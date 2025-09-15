@@ -9,7 +9,7 @@ class Room(models.Model):
         ('suit','Suit')
     ]
     image = models.FileField(upload_to='roomimages',blank=True,null=True)
-    hotel = models.ForeignKey(Hotal,on_delete=models.CASCADE,related_name='rooms')
+    hotel_id = models.ForeignKey(Hotal,on_delete=models.CASCADE,related_name='rooms')
     room_type = models.CharField(max_length=255,choices=ROOM_TYPES)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     availability = models.BooleanField(default=True)

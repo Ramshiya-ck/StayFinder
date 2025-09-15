@@ -15,10 +15,7 @@ class CustomerSerializer(ModelSerializer):
         fields = ['id','user','phone','address','profile_image','id_proof','nationality']
 
 
-class HotelSerializer(ModelSerializer):
-    class Meta:
-        model = Hotal
-        fields = ['id','hotal_name','image','description','phone','rating','location','email','amenities','is_active']
+
 
 class SliderSerializer(ModelSerializer):
     class Meta:
@@ -28,7 +25,7 @@ class SliderSerializer(ModelSerializer):
 class RoomSerializer(ModelSerializer):
     class Meta:
         model = Room
-        fields = ['id','image','hotel','room_type','price','availability']
+        fields = ['id','image','hotel_id','room_type','price','availability']
 
 class BookingSerializer(ModelSerializer):
     class Meta:

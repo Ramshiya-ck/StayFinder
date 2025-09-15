@@ -10,15 +10,10 @@ urlpatterns=[
 
     path('index/',views.index,name='index'),
     path('slider/',views.slider,name='slider'),
-    path('hotel/',views.hotel,name='hotel'),
-    path('hotel/search/',views.hotel_search,name='hotel_search'),
 
-    path('hotel/create/',views.hotel_create,name='hotel_create'),
-    path('hotel/edit/<int:id>/',views.hotel_edit,name='hotel_edit'),
-    path('hotel/delete/<int:id>/',views.hotel_deleted,name='hotel_deleted'),
-    path('single/hotel/<int:id>/',views.single_hotel,name='hotel'),
+   
 
-    path('rooms/',views.rooms,name='rooms'),
+    path('rooms/<int:hotel_id>/',views.rooms,name='rooms'),
     path('room/create/',views.room_create,name='room_create'),
     path('room/edit/<int:id>/',views.room_edit,name='room_edit'),
     path('room/delete/<int:id>/',views.room_deleted,name='room_deleted'),
