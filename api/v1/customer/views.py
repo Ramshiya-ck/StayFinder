@@ -204,13 +204,6 @@ def slider(request):
     return Response(response_data)
 
 
-
-    
-    
-
-
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout(request):
