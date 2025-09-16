@@ -4,7 +4,6 @@ from api.v1.hotel import views
 
 
 urlpatterns=[
-
     path('hotel/',views.hotel,name='hotel'),
     path('hotel/create/',views.hotel_create,name='hotel_create'),
     path('hotel/edit/<int:id>/',views.hotel_edit,name='hotel_edit'),

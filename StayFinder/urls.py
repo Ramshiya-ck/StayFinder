@@ -10,6 +10,10 @@ urlpatterns = [
 
 
     path('api/v1/customer/', include("api.v1.customer.urls")),
+    path('api/v1/hotel/', include("api.v1.hotel.urls")),
+    path('api/v1/room/', include("api.v1.room.urls")),
+    path('api/v1/booking/', include("api.v1.booking.urls")),
+
 ]
 
 if settings.DEBUG:

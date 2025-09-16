@@ -11,12 +11,12 @@ from Room.models import *
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def rooms(request,hotel_id):   # e.g., /rooms/7/
+def rooms(request,hotel_id):  
     rooms = Room.objects.filter(hotel_id=hotel_id)
 
 
-    print(rooms, "ggggg")
-
+    context = {
+        'request': request}
     if not rooms.exists():
         return Response({
             'status_code': 404,
@@ -24,7 +24,7 @@ def rooms(request,hotel_id):   # e.g., /rooms/7/
             'message': 'No rooms found for this hotel'
         })
 
-    serializer = RoomSerializer(rooms, many=True, context={'request': request})
+    serializer = RoomSerializer(rooms, many=True, context=context)
     return Response({
         'status_code': 200,
         'data': serializer.data,
@@ -34,28 +34,27 @@ def rooms(request,hotel_id):   # e.g., /rooms/7/
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def room_create(request,hotel_id):
-    hotel = Hotal.objects.get(hotel_id=hotel_id)
+def room_create(request, hotel_id):
+    hotel = Hotal.objects.get(id=hotel_id)  # use id here
     context = {
-        'request':request
+        'request': request,
+        'hotel': hotel   # pass hotel to serializer context
     }
-    serializer = RoomSerializer(data = request.data,context=context)
+    serializer = RoomSerializer(data=request.data, context=context)
     if serializer.is_valid():
-        serializer.save()
-        
-        response_data = {
+        serializer.save()  # hotel is attached in serializer
+        return Response({
             'status_code': 6000,
             'data': serializer.data,
             'message': 'Room created successfully'
-        }
-        return Response(response_data)
-    else:
-        response_data = {
-            'status_code':6001,
-            'error':serializer.errors,
-            'message':'Hotal creation failed'
-        }
-        return Response(response_data)
+        })
+    return Response({
+        'status_code': 6001,
+        'error': serializer.errors,
+        'message': 'Room creation failed'
+    })
+
+
     
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
