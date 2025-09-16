@@ -1,3 +1,23 @@
 from django.db import models
+from Hotel.models import Hotal
 
-# Create your models here.
+class Request(models.Model):
+    hotel_name = models.ForeignKey(Hotal, on_delete=models.CASCADE)
+    address = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    email = models.ForeignKey(Hotal, on_delete=models.CASCADE)
+    phone = models.ForeignKey(Hotal, on_delete=models.CASCADE)
+    location = models.ForeignKey(Hotal, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")], default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)    
+    class Meta:
+        db_table = 'hotel_requests'
+        verbose_name = 'Request'
+        verbose_name_plural = 'Requests'
+        ordering = ['-id']
+    def __str__(self):
+        return f"Request #(self.id)-(self.hotel_name)-(self.status)"
+
+
+
