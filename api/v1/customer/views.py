@@ -5,15 +5,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 
 
-
 from user.models import User
 from customer.models import *
 from customer.models import *
 from Hotel.models import *
 from api.v1.customer.serializers import *
-
 from django.contrib.auth import authenticate
-
 
 
 @api_view(['POST'])

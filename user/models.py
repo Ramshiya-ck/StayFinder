@@ -8,6 +8,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=256, error_messages={'unique':'email already exist'})
     is_customer = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

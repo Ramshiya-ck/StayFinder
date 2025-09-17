@@ -1,7 +1,9 @@
 from django.db import models
 from Hotel.models import Hotal
+from user.models import User
 
 class Request(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     hotel_name = models.ForeignKey(Hotal, on_delete=models.CASCADE)
     address = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
