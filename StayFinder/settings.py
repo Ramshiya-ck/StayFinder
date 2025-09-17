@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'Hotel',
     'Room',
     'booking',
-    'request',
+    
 
     'rest_framework',
     'rest_framework_simplejwt',
