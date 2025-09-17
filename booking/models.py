@@ -5,7 +5,7 @@ from Room.models import Room
 
 class Booking(models.Model):
 
-    STATUS_CHOICE =[
+    PAYMENT_STATUS_CHOICES =[
         ('pending','Pending'),
         ('confirmed','Confirmed'),
         ('cancelled','Cancelled'),
@@ -17,18 +17,24 @@ class Booking(models.Model):
         ('paid','Paid'),
         ('failed','Failed')
     ]
-    image = models.FileField(upload_to='booking_images',blank=True,null=True)
+
     customer = models.ForeignKey(User,on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotal,on_delete=models.CASCADE)
+    room = models.ForeignKey(Room,on_delete=models.CASCADE) 
+
     address = models.TextField(blank=True,null=True)
     phone = models.IntegerField(blank=True,null=True)
     payment_status = models.CharField(max_length=20,choices=PAYMENT_STATUS_CHOICES,default='pending')   
-    total_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
-    hotel = models.ForeignKey(Hotal,on_delete=models.CASCADE)
-    room = models.ForeignKey(Room,on_delete=models.CASCADE) 
+
     check_in = models.DateField()
     check_out = models.DateField()
-    number_of_guest = models.PositiveBigIntegerField(default=False)
-    status = models.CharField(max_length=20,choices=STATUS_CHOICE,default='pending')
+    guests = models.PositiveIntegerField(default=1)
+
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    advance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # ✅ advance payment
+    balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # auto-calculated
+
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
