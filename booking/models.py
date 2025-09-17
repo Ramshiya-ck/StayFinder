@@ -5,7 +5,7 @@ from Room.models import Room
 
 class Booking(models.Model):
 
-    PAYMENT_STATUS_CHOICES =[
+    BOOKING_STATUS_CHOICES =[
         ('pending','Pending'),
         ('confirmed','Confirmed'),
         ('cancelled','Cancelled'),
@@ -23,7 +23,7 @@ class Booking(models.Model):
     room = models.ForeignKey(Room,on_delete=models.CASCADE) 
 
     address = models.TextField(blank=True,null=True)
-    phone = models.IntegerField(blank=True,null=True)
+    phone = models.CharField(max_length=15,blank=True,null=True)
     payment_status = models.CharField(max_length=20,choices=PAYMENT_STATUS_CHOICES,default='pending')   
 
     check_in = models.DateField()
@@ -34,7 +34,7 @@ class Booking(models.Model):
     advance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # ✅ advance payment
     balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # auto-calculated
 
-    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
+    booking_status = models.CharField(max_length=20, choices=BOOKING_STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -46,7 +46,14 @@ class Booking(models.Model):
         verbose_name_plural = 'bookings'
         ordering = ['-id']
 
-        def __str__(self):
+    def save(self, *args, **kwargs):
+        if self.advance_amount > self.total_amount:
+            self.advance_amount = self.total_amount
+        self.balance_amount = self.total_amount - self.advance_amount
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
             return f"Booking #(self.id)-(self.customer)-(self.room.room_type)@(self.hotel.hotal_name)"
 
 
