@@ -6,4 +6,5 @@ urlpatterns=[
     path('room/create/<int:hotel_id>/',views.room_create,name='room_create'),
     path('room/edit/<int:id>/',views.room_edit,name='room_edit'),
     path('room/delete/<int:id>/',views.room_deleted,name='room_deleted'),
+    path('room/search/<int:id>/',views.room_search,name='room_search'),
 ]

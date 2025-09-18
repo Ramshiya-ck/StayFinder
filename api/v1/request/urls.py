@@ -1,6 +1,6 @@
-# from django.urls import path
-# from . import views
+from django.urls import path
+from . import views
 
-# urlpatterns = [
-    
-# ]
+urlpatterns = [
+    path('request/create/',views.request_create,name='request_create'),
+]

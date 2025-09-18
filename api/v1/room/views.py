@@ -54,6 +54,37 @@ def room_create(request, hotel_id):
         'message': 'Room creation failed'
     })
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def room_search(request, id):
+    instance = Room.objects.filter(id=id)
+
+    price = request.GET.get('price')
+    room_type = request.GET.get('room_type')
+
+    if price:
+        instance = Room.objects.filter(
+            price__lte=price
+        )
+    elif room_type:
+        instance = Room.objects.filter(
+            room_type__icontains=room_type
+        )
+
+    else:
+        instance = Room.objects.all()
+        
+    context = {
+        'request': request
+    }    
+    serializers = RoomSerializer(instance,many=True, context=context)
+    response_data = {
+        'status_code': 6000,
+        'data': serializers.data,
+        'message': 'Room search successfully'
+    }
+    return Response(response_data)
+
 
     
 @api_view(['PUT'])
