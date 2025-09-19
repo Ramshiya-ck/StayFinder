@@ -12,7 +12,7 @@ from customer.models import *
 class CustomerSerializer(ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['id','user','phone','address','profile_image','id_proof','nationality']
+        fields = ['id','user']
 
 
 
@@ -23,6 +23,9 @@ class SliderSerializer(ModelSerializer):
         fields = ['id','name','image','description']       
 
 
-
+class ProfileSerializer(ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['id','customer','phone','address','city','country','profile_image','is_default']
 
 

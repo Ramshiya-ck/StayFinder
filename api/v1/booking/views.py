@@ -14,15 +14,28 @@ from rest_framework.response import Response
 from booking.models import Booking
 from .serializers import BookingSerializer
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def booking_list(request, hotel_id=None):
-    user = request.user
-    
-    bookings = Booking.objects.filter(customer=user)  # ✅ fix
 
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def booking_list(request, hotel_id=None, room_id=None):
+    customer = request.user
+
+    # Base filter → only customer’s bookings
+    bookings = Booking.objects.filter(customer=customer)
+
+    # Optional hotel filter
     if hotel_id:
         bookings = bookings.filter(hotel_id=hotel_id)
+
+    # Optional room filter
+    if room_id:
+        bookings = bookings.filter(room_id=room_id)
+
+    bookings = bookings.filter(
+        advance_amount__gte=(0.3 * models.F("total_amount"))
+    )
 
     serializer = BookingSerializer(bookings, many=True, context={"request": request})
     return Response({
@@ -34,28 +47,58 @@ def booking_list(request, hotel_id=None):
 
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def booking_create(request, hotel_id):
-    data = request.data.copy()
-    data["customer"] = request.user.id   # auto-assign logged-in user
-    data["hotel"] = hotel_id             # ✅ force hotel_id from URL
 
-    serializer = BookingSerializer(data=data, context={"request": request})
-    if serializer.is_valid():
-        booking = serializer.save()
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def booking_create(request):
+    customer = request.user
+    hotel_id = request.data.get("hotel")
+    room_id = request.data.get("room")
+    check_in = request.data.get("check_in")
+    check_out = request.data.get("check_out")
+
+    # 🛑 Validation: missing required fields
+    if not hotel_id or not room_id or not check_in or not check_out:
         return Response({
-            "status_code": 6000,
-            "message": f"Booking created successfully for hotel {hotel_id}",
-            "data": BookingSerializer(booking, context={"request": request}).data
+            "status_code": 6001,
+            "message": "Hotel, Room, Check-in, and Check-out are required"
         })
 
-    return Response({
-        "status_code": 6001,
-        "message": "Booking creation failed",
-        "data": serializer.errors
-    })
+    # 🛑 Validation: check if room is already booked in date range
+    overlapping = Booking.objects.filter(
+        hotel_id=hotel_id,
+        room_id=room_id,
+        booking_status__in=["pending", "confirmed"],  # only active bookings
+        check_in__lt=check_out,
+        check_out__gt=check_in
+    )
 
+    if overlapping.exists():
+        return Response({
+            "status_code": 6002,
+            "message": "This room is already booked for the selected dates"
+        })
+
+    # ✅ Create booking
+    data = request.data.copy()
+    data["customer"] = customer.id
+    serializer = BookingSerializer(data=data, context={"request": request})
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "status_code": 6000,
+            "message": "Booking created successfully",
+            "data": serializer.data
+        })
+    
+    return Response({
+        "status_code": 6003,
+        "message": "Validation failed",
+        "errors": serializer.errors
+    })
 
     
 @api_view(['PUT', 'PATCH'])
@@ -190,32 +233,3 @@ def booking_reschedule(request,id):
     }
     return Response(response_data)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def booking_history(request, hotel_id=None):
-    """
-    Get booking history for the logged-in user.
-    Optional: filter by hotel_id or by status (?status=pending/paid/etc)
-    """
-    user = request.user
-
-    # ✅ Filter bookings by user
-    bookings = Booking.objects.filter(customer=user)
-
-    # ✅ Filter by hotel_id if provided in URL
-    if hotel_id:
-        bookings = bookings.filter(hotel_id=hotel_id)
-
-    # ✅ Optional status filter from query param
-    status = request.GET.get("status")
-    if status:
-        bookings = bookings.filter(status=status.lower())
-
-    # Serialize bookings
-    serializer = BookingSerializer(bookings, many=True, context={"request": request})
-
-    return Response({
-        "status_code": 6000 if bookings.exists() else 404,
-        "message": "Booking history retrieved successfully" if bookings.exists() else "No bookings found",
-        "data": serializer.data
-    })

@@ -146,3 +146,5 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365),   
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365),     
 }
+STRIPE_SECRET_KEY = "sk_test_your_secret_key"
+STRIPE_PUBLISHABLE_KEY = "pk_test_your_publishable_key"

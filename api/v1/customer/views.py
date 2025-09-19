@@ -89,11 +89,11 @@ def register(request):
 @permission_classes([IsAuthenticated])
 def profile(request):
     user = request.user
-    customer = Customer.objects.get(user=user)
+    customer = Profile.objects.all()
     context = {
         'request':request
     }
-    serializers = CustomerSerializer(customer,context=context)
+    serializers = ProfileSerializer(customer,many=True,context=context)
     response_data = {
         'status_code' : 6000,
         'data' : serializers.data,
@@ -105,11 +105,11 @@ def profile(request):
 @permission_classes([IsAuthenticated])
 def profile_create(request):
     user = request.user
-    customer = Customer.objects.get(user=user)
+    customer = Profile.objects.get(user=user)
     context = {
         'request':request   
     }
-    serializers = CustomerSerializer(customer,context= context,data=request.data)
+    serializers = ProfileSerializer(customer,context= context,data=request.data)
     if serializers.is_valid():
         serializers.save()
         response_data = {
@@ -128,13 +128,13 @@ def profile_create(request):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def profile_update(request):
+def profile_update(request,id):
     user = request.user
-    customer = Customer.objects.get(user=user)
+    customer = Profile.objects.get(user=user)
     context = {
         'request':request   
     }
-    serializers = CustomerSerializer(customer,context= context,data=request.data,partial=True)
+    serializers = ProfileSerializer(customer,context= context,data=request.data,partial=True)
     if serializers.is_valid():
         serializers.save()
         response_data = {
