@@ -57,4 +57,33 @@ class Booking(models.Model):
             return f"Booking #(self.id)-(self.customer)-(self.room.room_type)@(self.hotel.hotal_name)"
 
 
+class Payment(models.Model):
+        
+    PAYMENT_STATUS_CHOICES = [
+        ('pending','Pending'),
+        ('paid','Paid'),
+        ('failed','Failed')
+    ]
+    customer = models.ForeignKey(User,on_delete=models.CASCADE)
+    room = models.ForeignKey(Room,on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotal,on_delete=models.CASCADE)
+    address = models.ForeignKey(Booking,on_delete=models.CASCADE,related_name='payment_address')
+    advance_amount = models.ForeignKey(Booking,on_delete=models.CASCADE,default='0')
+    status = models.CharField(max_length=15,choices=PAYMENT_STATUS_CHOICES,default='pending')
+    stripe_payment_intent = models.CharField(max_length=255, blank=True, null=True)
+
+
+    class Meta:
+
+        db_table = 'payment_list'
+        verbose_name = 'payment'
+        verbose_name_plural = 'payments'
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.customer.email
+
+
+
+
 

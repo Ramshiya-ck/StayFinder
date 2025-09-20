@@ -12,4 +12,10 @@ urlpatterns=[
     path('booking/cancel/<int:id>/',views.booking_cancel,name='booking_cancel'),
     path('booking/reschedule/<int:id>/',views.booking_reschedule,name='booking_reschedule'),
 
+
+
+    # __________________payment_____________________
+
+    path("create/advance/payment/", views.create_advance_payment, name="create_advance_payment"),
+
 ]

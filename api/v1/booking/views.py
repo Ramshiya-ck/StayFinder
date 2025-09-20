@@ -1,10 +1,15 @@
-# import stripe
+
+import stripe
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
-# stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 from api.v1.booking.serializers import *
 from booking.models import *
@@ -15,7 +20,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from booking.models import Booking
 from .serializers import BookingSerializer
-
 
 
 
@@ -234,4 +238,72 @@ def booking_reschedule(request,id):
         }
     }
     return Response(response_data)
+
+
+
+# __________________________payment_________________________
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_advance_payment(request):
+    try:
+        customer = request.user
+        hotel_id = request.data.get("hotel_id")
+        room_id = request.data.get("room_id")
+        address = request.data.get("address")
+        advance_amount = request.data.get("advance_amount")  # user pays this part
+
+        if not (hotel_id and room_id and advance_amount):
+            return Response({"error": "hotel_id, room_id, and advance_amount are required"}, status=400)
+
+        # Get hotel & room
+        hotel = Hotal.objects.get(id=hotel_id)
+        room = Room.objects.get(id=room_id)
+
+        # Convert to cents for Stripe
+        amount_in_cents = int(float(advance_amount) * 100)
+
+        # Create local payment record
+        payment = Payment.objects.create(
+            customer=customer,
+            hotel=hotel,
+            room=room,
+            address=address,
+            amount=advance_amount,
+            status="pending",
+        )
+
+        # Create Stripe Checkout Session
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"{hotel.hotal_name} - {room.room_type}",
+                        },
+                        "unit_amount": amount_in_cents,
+                    },
+                    "quantity": 1,
+                }
+            ],
+            mode="payment",
+            success_url=request.build_absolute_uri(f"/api/v1/payment/success/{payment.id}/"),
+            cancel_url=request.build_absolute_uri(f"/api/v1/payment/cancel/{payment.id}/"),
+        )
+
+        # Save Stripe session id in DB
+        payment.stripe_payment_intent = session.id
+        payment.save()
+
+        return Response({"checkout_url": session.url, "payment_id": payment.id}, status=200)
+
+    except Hotal.DoesNotExist:
+        return Response({"error": "Hotel not found"}, status=404)
+    except Room.DoesNotExist:
+        return Response({"error": "Room not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 

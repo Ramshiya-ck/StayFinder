@@ -1,4 +1,5 @@
 
+from decouple import config
 from datetime import timedelta
 from pathlib import Path
 
@@ -147,4 +148,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365),     
 }
 # STRIPE_SECRET_KEY = "sk_test_your_secret_key"
-# STRIPE_PUBLISHABLE_KEY = "pk_test_your_publishable_key"
+STRIPE_PUBLISHABLE_KEY = "pk_test_your_publishable_key"
+
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+
